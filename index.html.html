@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CELPIP Soraq Kitabçası</title>
+<style>
+:root{
+  --ink:#1E2A44; --paper:#FBFAF7; --panel:#FFFFFF; --line:#E3E0D8;
+  --teacher:#2E7D32; --corpus:#2E5395; --gold:#E8B84B;
+  --err:#C43B3B; --vocab:#D98E2B; --muted:#7A7668;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,'Segoe UI',Roboto,Arial,sans-serif;background:var(--paper);color:var(--ink);font-size:15px;line-height:1.5}
+header{background:var(--ink);color:#fff;padding:14px 20px 0;position:sticky;top:0;z-index:10;box-shadow:0 2px 8px #0002}
+.hrow{display:flex;align-items:center;gap:14px;max-width:900px;margin:0 auto;flex-wrap:wrap}
+header h1{font-family:Georgia,serif;font-size:18px;font-weight:600;white-space:nowrap}
+header h1 span{color:var(--gold)}
+#search{flex:1;min-width:200px;background:#fff;border:none;border-radius:9px;padding:10px 14px;font-size:15px;color:var(--ink)}
+#search:focus{outline:3px solid var(--gold)}
+#tabs{display:flex;gap:4px;max-width:900px;margin:12px auto 0;overflow-x:auto}
+.tab{background:transparent;color:#cfcabb;border:none;border-bottom:3px solid transparent;padding:8px 14px 10px;font-size:13.5px;font-weight:600;cursor:pointer;white-space:nowrap}
+.tab.on{color:var(--gold);border-bottom-color:var(--gold)}
+main{max-width:900px;margin:0 auto;padding:16px 14px 80px}
+.filters{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+.chip{background:#EFEDE5;border:1px solid var(--line);border-radius:16px;padding:5px 12px;font-size:12.5px;font-weight:600;color:var(--muted);cursor:pointer}
+.chip.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+.chip.prio.on{background:var(--err);border-color:var(--err)}
+.count{font-size:12.5px;color:var(--muted);margin-bottom:10px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px 15px;margin-bottom:9px;border-left:4px solid var(--line)}
+.card.c-err{border-left-color:var(--err)}
+.card.c-phr{border-left-color:var(--corpus)}
+.card.c-voc{border-left-color:var(--vocab)}
+.card.c-det{border-left-color:var(--teacher)}
+.card .top{display:flex;gap:8px;align-items:baseline;flex-wrap:wrap;margin-bottom:3px}
+.tag{font-size:10.5px;font-weight:700;letter-spacing:.5px;padding:2px 8px;border-radius:9px;white-space:nowrap}
+.tag.t-err{background:#F9E7E4;color:var(--err)}
+.tag.t-phr{background:#E4EBF7;color:var(--corpus)}
+.tag.t-voc{background:#FBF0DE;color:#9a6414}
+.tag.t-det{background:#E3F0E3;color:var(--teacher)}
+.tag.t-prio{background:var(--err);color:#fff}
+.tag.t-task{background:#EFEDE5;color:var(--muted)}
+.en{font-family:Georgia,serif;font-size:15.5px}
+.az{font-size:13.5px;color:var(--muted);margin-top:2px}
+.wrong{font-family:Georgia,serif;text-decoration:line-through;color:#a2543f}
+.right{font-family:Georgia,serif;font-weight:700;color:var(--teacher)}
+.rule{font-size:13px;color:var(--muted);margin-top:3px}
+.grp{font-family:Georgia,serif;font-size:16px;margin:18px 0 8px;color:var(--ink);border-bottom:2px solid var(--gold);padding-bottom:3px}
+.empty{text-align:center;color:var(--muted);padding:40px 0;font-size:14px}
+/* drill */
+.drillwrap{max-width:560px;margin:0 auto;text-align:center}
+.dcard{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:34px 26px;min-height:210px;display:flex;flex-direction:column;justify-content:center;gap:12px;cursor:pointer;box-shadow:0 3px 12px #0000000d}
+.dcard .side{font-size:11px;letter-spacing:1.5px;color:var(--muted);text-transform:uppercase}
+.dcard .big{font-family:Georgia,serif;font-size:20px;line-height:1.45}
+.dcard .big.w{color:#a2543f;text-decoration:line-through}
+.dcard .big.r{color:var(--teacher);font-weight:700}
+.dcard .rl{font-size:13.5px;color:var(--muted)}
+.dbtns{display:flex;gap:10px;justify-content:center;margin-top:16px}
+.btn{border:none;border-radius:9px;padding:11px 20px;font-size:14px;font-weight:700;cursor:pointer}
+.btn.know{background:var(--teacher);color:#fff}
+.btn.dont{background:var(--err);color:#fff}
+.btn.flip{background:var(--ink);color:#fff}
+.btn.ghost{background:transparent;border:1.5px solid var(--ink);color:var(--ink)}
+.dstats{display:flex;gap:14px;justify-content:center;margin:14px 0;font-size:13px;color:var(--muted)}
+.dstats b{font-size:17px;display:block;font-family:Georgia,serif}
+.dstats .k b{color:var(--teacher)}.dstats .d b{color:var(--err)}
+.dmode{display:flex;gap:6px;justify-content:center;margin-bottom:14px}
+.note{font-size:12px;color:var(--muted);text-align:center;margin-top:18px}
+mark{background:var(--gold);border-radius:2px;padding:0 1px}
+details.fw{background:var(--panel);border:1px solid var(--line);border-left:4px solid var(--teacher);border-radius:10px;margin-bottom:9px;overflow:hidden}
+details.fw summary{padding:11px 15px;font-weight:700;font-size:14.5px;cursor:pointer;list-style:none;display:flex;align-items:center;gap:8px}
+details.fw summary::before{content:"▸";color:var(--gold);font-size:13px;transition:transform .15s}
+details.fw[open] summary::before{transform:rotate(90deg)}
+details.fw summary::-webkit-details-marker{display:none}
+.stg{display:inline-flex;align-items:center;justify-content:center;min-width:24px;height:24px;padding:0 5px;background:var(--ink);color:var(--gold);border-radius:12px;font-size:12px;font-family:Georgia,serif;flex-shrink:0}
+.fwb{padding:0 15px 13px;font-size:14px}
+.fwb p{margin:6px 0}
+.fwb ul,.fwb ol{margin:5px 0;padding-left:18px}
+.fwb li{margin:3px 0}
+.fwb i,.fwb .fx{font-family:Georgia,serif}
+.fwb .fx{display:block;background:#F5F8F3;border:1px solid #cfe0cc;border-radius:8px;padding:10px 13px;margin:7px 0;line-height:1.7;font-size:14.5px}
+.fwb b{color:var(--ink)}
+.sub{border-top:1px dashed var(--line);margin-top:10px;padding-top:8px}
+.subh{font-size:11.5px;font-weight:800;letter-spacing:.8px;text-transform:uppercase;margin-bottom:5px}
+.s-e .subh{color:var(--err)}.s-p .subh{color:var(--corpus)}.s-v .subh{color:#9a6414}.s-d .subh{color:var(--teacher)}
+.mini{padding:5px 9px;border-radius:7px;margin:4px 0;font-size:13.5px;background:#FAF9F5}
+.s-e .mini{background:#FDF6F5}.s-p .mini{background:#F5F8FC}.s-v .mini{background:#FDF9F1}.s-d .mini{background:#F5FaF5}
+.en2{font-family:Georgia,serif;font-size:14px}
+.mini .rule{margin-top:1px;font-size:12.5px}
+@media(max-width:560px){.en{font-size:14.5px}.dcard .big{font-size:17px}}
+</style>
+</head>
+<body>
+<header>
+  <div class="hrow">
+    <h1>CELPIP <span>Soraq Kitabçası</span></h1>
+    <input id="search" type="search" placeholder="Hər şeydə axtar: prevent, güzəşt, refund…" autocomplete="off">
+  </div>
+  <div id="tabs"></div>
+</header>
+<main>
+  <div class="filters" id="filters"></div>
+  <div class="count" id="count"></div>
+  <div id="content"></div>
+</main>
+<script>
+/* ==================== DATA ==================== */
+const ERRORS=[
+ {w:"prevent them from traffic collisions / prevent them from spoiling (obyektsiz)",r:"protect them from traffic collisions • prevent them from spoiling people's meals",rule:"prevent + obyekt VƏ YA prevent sb from doING; “prevent from + isim” forması YOXDUR",prio:true,mech:"M4"},
+ {w:"I am looking forward your reply",r:"I look forward TO your reply",rule:"sözönü TO mütləqdir",mech:"M4"},
+ {w:"resulted the number",r:"resulted IN the number (of subscribers dwindling)",rule:"resulted IN",mech:"M4"},
+ {w:"employees haven't rush",r:"employees don't have to rush",rule:"məcburiyyət inkarı: don't have to"},
+ {w:"regarding the recent researches",r:"according to recent research",rule:"research sayılmaz isimdir"},
+ {w:"offer employees to take",r:"allow employees to spend / enable employees to",rule:"allow sb to do (offer sb to do yoxdur)"},
+ {w:"it takes 45 minutes me",r:"it takes me 45 minutes",rule:"söz sırası: it takes SB X minutes"},
+ {w:"it affected great to me",r:"it made a great difference to me",rule:"kollokasiya"},
+ {w:"silence and clarity",r:"peace and quiet",rule:"sabit cütlük"},
+ {w:"in recent times",r:"recently / over the past few weeks",rule:"təbiilik"},
+ {w:"stop our lunch and go back",r:"cut our lunch short and return to the office",rule:"dəqiq fel: cut short"},
+ {w:"the printer stopped immediately",r:"the printer stopped mid-print",rule:"dəqiqlik: mid-print"},
+ {w:"stationary",r:"stationery",rule:"stationery = yazı ləvazimatı; stationary = hərəkətsiz (tələ cütü)"},
+ {w:"a yellow track",r:"a yellow truck",rule:"truck = yük maşını; track = cığır/iz (tələ cütü)"},
+ {w:"meet greater",r:"greeter",rule:"greeter = qarşılayan işçi"},
+ {w:"daily lifestyle",r:"daily lives / daily routine",rule:"kollokasiya"},
+ {w:"my first time to live",r:"my first time living",rule:"first time + gerund"},
+ {w:"join meets, daily works",r:"join meetings, daily work",rule:"forma: meetings; work sayılmaz"},
+ {w:"is sold three times less than",r:"has only a third as many subscribers as",rule:"müqayisə qəlibi"},
+ {w:"help these two things",r:"address both of these challenges",rule:"dəqiq fel: address"},
+ {w:"the next slot's owner",r:"the next person booked / other users",rule:"təbiilik"},
+ {w:"Because it improves… (ayrıca cümlə)",r:"…, because it improves…",rule:"Because fraqmenti olmaz — baş cümləyə bağlan",mech:"M1"},
+ {w:"dressed black was dumping",r:"dressed IN black + witnessed sb doING",rule:"sözönü IN + şahidlik qəlibi: witnessed sb doing sth",mech:"M1"},
+ {w:"which bearing the logo",r:"bearing the logo / with the logo",rule:"which + fel formasız qalmasın; təyin üçün bearing təkbaşına",mech:"M1"},
+ {w:"a specialist team contain experts",r:"a team OF environmental experts / containing",rule:"isim+təyin qəlibi: team of / containing / bearing",mech:"M1"},
+ {w:"if you would conduct",r:"if you could conduct",rule:"would appreciate it if you COULD (would…would olmaz)"},
+ {w:"I would suggest you place",r:"I would suggest placING / May I suggest that you place",rule:"suggest + -ing / suggest that (suggest sb to do YOXDUR)"},
+ {w:"near the Bayshore Park / into the Swan Lake",r:"near Bayshore Park / into Swan Lake",rule:"park/göl adları artiklsiz; west gate kiçik hərflə"},
+ {w:"refused to go to school (qorxu avtobusdan idi)",r:"refused to ride the bus",rule:"nəticə səbəbə bağlanmalıdır — topic sentence-i birbaşa sübut etsin"},
+ {w:"Secondly, [detalla açılış]",r:"Secondly, [topic sentence] + sonra detal",rule:"body səbəbin təkrar ifadəsi ilə açılır; detal SONRA gəlir"},
+ {w:"on a class trip to the Modern Literature Museum",r:"to the museum",rule:"uzun xüsusi ad arqumentə heç nə vermir — ucuz qənaət yeri"},
+ {w:"my son Jonah (əvvəl Ali idi)",r:"my son Ali — mətn boyu SABİT",rule:"M2: personaj/tarix mətn ortasında dəyişməz; detal bankı adları əzbərdir",mech:"M2"}
+];
+const PHRASES=[
+ {g:"Purpose (giriş)",en:"I am writing to discuss some problems… and to suggest some solutions.",az:"Problemləri müzakirə etmək və həll yolları təklif etmək üçün yazıram.",task:"T1"},
+ {g:"Purpose (giriş)",en:"I am writing to express my dissatisfaction with… and to offer a resolution.",az:"…dan narazılığımı bildirmək və həll təklif etmək üçün yazıram.",task:"T1"},
+ {g:"Purpose (giriş)",en:"I am writing to inform you about… and to inquire about…",az:"…barədə məlumat vermək və …haqqında soruşmaq üçün.",task:"T1"},
+ {g:"Purpose (giriş)",en:"I'm just writing to let you know that…",az:"Sadəcə bilməyini istəyirəm ki… (informal)",task:"T1"},
+ {g:"Açılışlar (janr üzrə)",en:"The following is an account of the vehicle accident I witnessed on… at approximately…",az:"Hesabat açılışı: fakt cümləsi",task:"T1"},
+ {g:"Açılışlar (janr üzrə)",en:"Thank you for the wonderful event last weekend.",az:"Təşəkkür məktubu açılışı",task:"T1"},
+ {g:"Açılışlar (janr üzrə)",en:"I hope that you remember me from last year; I took your course in…",az:"Xatırlatma (reference) açılışı",task:"T1"},
+ {g:"Güzəşt (concession)",en:"While I recognise that…, I feel that…",az:"Etiraf edirəm ki…, amma hesab edirəm ki…",task:"T1T2"},
+ {g:"Güzəşt (concession)",en:"While I do acknowledge that…, I strongly endorse…",az:"…qəbul etsəm də, qətiyyətlə dəstəkləyirəm.",task:"T2"},
+ {g:"Güzəşt (concession)",en:"I understand mistakes can happen, but…",az:"Başa düşürəm ki, səhvlər ola bilər, amma…",task:"T1"},
+ {g:"Güzəşt (concession)",en:"Though X sounds convenient due to…, it is not the better option.",az:"X rahat görünsə də, daha yaxşı seçim deyil.",task:"T2"},
+ {g:"Güzəşt (concession)",en:"At first glance… / At first, I assumed…",az:"İlk baxışda… / Əvvəlcə elə bildim ki…",task:"T1T2"},
+ {g:"Eskalasiya və xahiş",en:"This is not the first time (that) I have…",az:"Bu, ilk dəfə deyil ki…",task:"T1"},
+ {g:"Eskalasiya və xahiş",en:"I have asked them on numerous occasions, but to no avail.",az:"Dəfələrlə xahiş etmişəm, amma nəticəsiz.",task:"T1"},
+ {g:"Eskalasiya və xahiş",en:"I feel I have no recourse but to contact you now.",az:"Müraciət etməkdən başqa çarəm qalmadı.",task:"T1"},
+ {g:"Eskalasiya və xahiş",en:"I request that you either [X] or [Y].",az:"Ya [X], ya da [Y] etməyinizi xahiş edirəm. (iki-variantlı!)",task:"T1"},
+ {g:"Eskalasiya və xahiş",en:"I would appreciate it if you could…",az:"…etsəniz, minnətdar olaram. (could — would yox!)",task:"T1"},
+ {g:"Eskalasiya və xahiş",en:"I am happy to come at off-peak hours.",az:"Çeviklik cümləsi: sıxlıq olmayanda gəlməyə hazıram.",task:"T1"},
+ {g:"Eskalasiya və xahiş",en:"If this is not possible, please direct me to…",az:"Ehtiyat variant: mümkün deyilsə, yönləndirin.",task:"T1"},
+ {g:"Eskalasiya və xahiş",en:"at your earliest convenience",az:"sizə münasib ən yaxın vaxtda",task:"T1"},
+ {g:"Eskalasiya və xahiş",en:"I feel that it was your duty as [role] to ensure…",az:"[Vəzifə] olaraq …təmin etmək borcunuz idi. (sərt, amma nəzakətli — məsuliyyət qoyma)",task:"T1"},
+ {g:"Task 2: mövqe",en:"I strongly support this policy change.",az:"Qətiyyətlə dəstəkləyirəm. (gücləndirici zərf!)",task:"T2"},
+ {g:"Task 2: mövqe",en:"I am firmly in favour of keeping the park as it is.",az:"Qəti tərəfdarıyam.",task:"T2"},
+ {g:"Task 2: mövqe",en:"X should most definitely be allowed.",az:"Mütləq icazə verilməlidir.",task:"T2"},
+ {g:"Task 2: mövqe",en:"I would like to place on record that…",az:"Rəsmən qeyd etmək istəyirəm ki…",task:"T2"},
+ {g:"Task 2: sübut",en:"Microsoft recently tested a four-day working week and recorded a 40% boost in productivity.",az:"Adlı nümunə qəlibi: şirkət + rəqəm",task:"T2"},
+ {g:"Task 2: sübut",en:"Within our community, many [qrup] + [fakt], so + [nəticə]",az:"İcma müşahidəsi sübutu (qısa forma)",task:"T2"},
+ {g:"Task 2: sübut",en:"If you [decision], you are instantly [consequence].",az:"Hipotetik nəticə zənciri",task:"T2"},
+ {g:"Task 2: sübut",en:"With [problem] on the rise globally, …",az:"[Problem] artdığı bir vaxtda…",task:"T2"},
+ {g:"Task 2: sübut",en:"According to recent research, … / It has been proven that…",az:"Son araşdırmalara görə… / Sübut olunub ki… (researchES YOX!)",task:"T2"},
+ {g:"Task 2: sübut",en:"The benefits are not just for the individual, but for the community as a whole.",az:"Fayda təkcə fərd üçün deyil, bütöv icma üçündür. (nəticə-təsir cümləsi)",task:"T2"},
+ {g:"Task 2: bağlanış",en:"However, I will respect whatever decision is eventually chosen.",az:"Zərif demokratik bağlanış",task:"T2"},
+ {g:"Task 2: bağlanış",en:"Thank you for giving me the opportunity to voice my opinion on this matter.",az:"Fikir bildirmək imkanına görə təşəkkür",task:"T2"},
+ {g:"Bağlanış formulları",en:"I look forward to your cooperation in the matter.",az:"Əməkdaşlığınızı gözləyirəm. (formul — əzbər)",task:"T1"},
+ {g:"Bağlanış formulları",en:"I look forward to hearing back from you.",az:"Cavabınızı gözləyirəm.",task:"T1"},
+ {g:"Bağlanış formulları",en:"I look forward to your prompt attention to this matter.",az:"Tezliklə diqqət yetirməyinizi gözləyirəm.",task:"T1"},
+ {g:"Sessiya qəlibləri ‼",en:"He was so shaken that he refused to ride the bus for a week.",az:"so + sifət + that + nəticə → hər Tip 3 təsir cümləsində",task:"T1T2"},
+ {g:"Sessiya qəlibləri ‼",en:"…stops just two minutes from our building, while the nearest stop is a fifteen-minute walk away.",az:"while-müqayisə + iki rəqəm → convenience arqumentində",task:"T2"},
+ {g:"Sessiya qəlibləri ‼",en:"A school bus, however, follows one fixed route.",az:"X, however, + kontrast → Firstly-siz təbii keçid",task:"T1T2"},
+ {g:"Sessiya qəlibləri ‼",en:"warning signs + a dedicated hotline number ON these signs",az:"[kiçik tədbir] + [üstündə ikinci funksiya] → Tip 4",task:"T1"},
+ {g:"Sessiya qəlibləri ‼",en:"I witnessed three men dumping a black liquid…",az:"witnessed sb doING → hər şahidlik taskında",task:"T1"},
+ {g:"Example skeleti",en:"For instance, [vaxt] my son Ali [hadisə] while [kontekst]. He was so [hal] that he [ölçülə bilən davranış].",az:"Fiziki nəticəli şəxsi nümunə — hər Task 2 body-si üçün",task:"T2"}
+];
+const VOCAB=[
+ {g:"Dəqiq fellər",en:"dwindle / soar",az:"getdikcə azalmaq / kəskin artmaq"},
+ {g:"Dəqiq fellər",en:"cut short",az:"yarıda kəsmək"},
+ {g:"Dəqiq fellər",en:"escalate / deteriorate",az:"kəskinləşmək / pisləşmək"},
+ {g:"Dəqiq fellər",en:"hinder / hamper / undermine",az:"mane olmaq / sarsıtmaq"},
+ {g:"Dəqiq fellər",en:"overlook / neglect",az:"gözdən qaçırmaq / başlı-başına buraxmaq"},
+ {g:"Dəqiq fellər",en:"disrupt / disturb",az:"pozmaq (iş, yuxu) / narahat etmək"},
+ {g:"Dəqiq fellər",en:"deter illegal dumping",az:"çəkindirmək — təklif janrının qızıl feli"},
+ {g:"Dəqiq fellər",en:"entice",az:"cəlb etmək (the ad enticed me to the store)"},
+ {g:"Dəqiq fellər",en:"honour the advertised price",az:"elan olunmuş qiymətə əməl etmək"},
+ {g:"Dəqiq fellər",en:"trigger severe migraines / an asthmatic attack",az:"tutmaya səbəb olmaq"},
+ {g:"Dəqiq fellər",en:"compromise the health and safety of",az:"sağlamlığı təhlükəyə atmaq"},
+ {g:"Dəqiq fellər",en:"accommodate my request / schedule",az:"xahişimi/qrafikimi nəzərə almaq"},
+ {g:"Dəqiq fellər",en:"witness / collide with / commence",az:"şahidi olmaq / toqquşmaq / başlamaq"},
+ {g:"Dəqiq fellər",en:"go the extra mile / went above and beyond",az:"gözləniləndən artığını etmək"},
+ {g:"Dəqiq fellər",en:"swoop down at our food",az:"yeməyin üstünə şığımaq (quş)"},
+ {g:"Dəqiq fellər",en:"malfunction / warp",az:"nasaz işləmək / əyilmək (3D çap)"},
+ {g:"Dəqiq fellər",en:"reassure / clarify",az:"arxayınlaşdırmaq / aydınlaşdırmaq"},
+ {g:"Dəqiq fellər",en:"cater to the needs of…",az:"…ehtiyaclarını qarşılamaq"},
+ {g:"Dəqiq fellər",en:"enquire with a sales associate",az:"satış işçisindən soruşmaq"},
+ {g:"Dəqiq fellər",en:"commute / relocate",az:"işə gedib-gəlmək / köçmək"},
+ {g:"Fel+isim kollokasiyaları",en:"raise a concern • address an issue • resolve a dispute",az:"narahatlıq qaldırmaq • problemə yönəlmək • həll etmək"},
+ {g:"Fel+isim kollokasiyaları",en:"submit a request • meet a deadline • cause an inconvenience",az:"müraciət vermək • vaxtında çatdırmaq • narahatlıq yaratmaq"},
+ {g:"Fel+isim kollokasiyaları",en:"take action / measures / into consideration",az:"tədbir görmək / nəzərə almaq"},
+ {g:"Fel+isim kollokasiyaları",en:"grant a request / an extension • issue a refund",az:"xahişi təmin etmək / möhlət vermək • geri ödəniş etmək"},
+ {g:"Fel+isim kollokasiyaları",en:"impose a fine / a curfew • enforce rules",az:"cərimə/qadağan saatı qoymaq • qaydaları tətbiq etmək"},
+ {g:"Fel+isim kollokasiyaları",en:"pose a risk / a threat (to) • express my gratitude / concern",az:"risk yaratmaq • minnətdarlıq/narahatlıq bildirmək"},
+ {g:"Fel+isim kollokasiyaları",en:"draw your attention to",az:"diqqətinizi cəlb etmək"},
+ {g:"Şikayət dəsti",en:"to no avail • far from satisfactory • much to my dismay",az:"nəticəsiz • qaneedici olmaqdan uzaq • təəssüf ki"},
+ {g:"Şikayət dəsti",en:"this falls short of what was promised",az:"vəd olunandan geri qalır"},
+ {g:"Şikayət dəsti",en:"utterly disappointed",az:"son dərəcə məyus"},
+ {g:"Təklif dəsti",en:"a practical first step would be to… • it might be worth (+ing)",az:"praktik ilk addım… • dəyər ki…"},
+ {g:"Təklif dəsti",en:"some form of curfew / signage • as a preventive measure",az:"yumşaq hedcinq • preventiv tədbir kimi"},
+ {g:"Üzr / imtina",en:"due to unforeseen circumstances / a prior commitment",az:"gözlənilməz hallar / əvvəlki öhdəlik səbəbindən"},
+ {g:"Üzr / imtina",en:"to make it up to you, …",az:"əvəzini çıxmaq üçün… (kompensasiya cümləsi)"},
+ {g:"Təşəkkür",en:"exceeded my expectations • I cannot thank you enough for…",az:"gözləntilərimi aşdı • nə qədər təşəkkür etsəm azdır"},
+ {g:"Klaster: mənzil/icma",en:"landlord, tenant, lease, by-law, residents' association, property manager",az:"ev sahibi, kirayəçi, icarə, yerli qayda, sakinlər birliyi"},
+ {g:"Klaster: xidmət",en:"refund, warranty, faulty product, compensation, gift voucher, overcharged",az:"geri ödəniş, zəmanət, qüsurlu məhsul, kompensasiya, hədiyyə çeki"},
+ {g:"Klaster: iş/ofis",en:"commute, workload, morale, work-life balance, supervisor, deadline",az:"gediş-gəliş, iş yükü, əhval, iş-həyat balansı, rəhbər"},
+ {g:"Klaster: mühit/şəhər",en:"congestion, pedestrian, green space, designated area, littering",az:"tıxac, piyada, yaşıllıq, ayrılmış ərazi, zibilləmə"},
+ {g:"Klaster: təhsil/ailə",en:"curriculum, extracurricular, enrolment, sleep-deprived, tutor",az:"tədris proqramı, dərsdənkənar, qeydiyyat, yuxusuz, repetitor"},
+ {g:"Klaster: səhiyyə",en:"well-being, hazard, injury, allergy, safety measures, supervision",az:"rifah, təhlükə mənbəyi, zədə, allergiya, təhlükəsizlik tədbirləri"},
+ {g:"Klaster: nəqliyyat/məktəb ‼",en:"witness a minor collision while riding a city bus",az:"avtobusda kiçik toqquşmanın şahidi olmaq"},
+ {g:"Klaster: nəqliyyat/məktəb ‼",en:"follow one fixed route • special road privileges • flashing lights",az:"sabit marşrut • yol imtiyazları • yanıb-sönən işıqlar"},
+ {g:"Klaster: nəqliyyat/məktəb ‼",en:"get off at the wrong stop • a fifteen-minute walk away",az:"səhv dayanacaqda düşmək • 15 dəqiqəlik məsafədə"},
+ {g:"Klaster: nəqliyyat/məktəb ‼",en:"spare sb a stressful rush • protect children's well-being",az:"stresli tələsmədən xilas etmək • uşaqların rifahını qorumaq"},
+ {g:"Yumşaq idiomlar (YALNIZ informal T1 + T2)",en:"in the long run • a win-win (solution) • on top of that",az:"uzunmüddətdə • hər iki tərəfə qazanclı • üstəlik — formal şikayətdə İŞLƏTMƏ!"},
+ {g:"Yumşaq idiomlar (YALNIZ informal T1 + T2)",en:"keep an eye on • make ends meet • it goes without saying that",az:"nəzarətdə saxlamaq • dolanışığı çatdırmaq • sözsüz ki"}
+];
+const DETAILS=[
+ {g:"Personaj",en:"Nijat G. (Nijat Gasimov) — software engineer at BrightSoft Solutions (5 il), iş saatı 9-6",az:"İmza: Regards, Nijat G."},
+ {g:"Personaj",en:"BridgeStone Apartments, Main Street & 8th of November Ave, Bayshore Village — since 2023",az:"Yaşayış (sakin çərçivəsi üçün)"},
+ {g:"Personaj",en:"həyat yoldaşı + oğlu Ali (məktəbli) + qızı Leyla (5 yaş) • black BMW 740",az:"Ailə və avtomobil — mətn boyu SABİT"},
+ {g:"Adlar",en:"Mr. Smith, Mr. MacDonald, Ms. Thompson, Mrs. Wilson • Dr. Lee, Professor Wilson, Officer Brown",az:"Rəsmi + peşəkar adlar"},
+ {g:"Adlar",en:"John, Sarah, David, Emma, Michael",az:"Dost/həmkar adları"},
+ {g:"Yerlər",en:"Bayshore Park, Swan Lake, Main Street, 45 Yonge St, Kingston, North York, Lakeside Mall",az:"Məkanlar"},
+ {g:"Yerlər",en:"Johnny's Steakhouse, GreenLeaf Grocery, TD Bank Midland Branch, The Baku Star, Olivia Cosmetics",az:"Bizneslər"},
+ {g:"Rəqəm qəlibləri",en:"at 3:15 p.m. last Sunday • since April • for the past two weeks",az:"Vaxt — 'many/a lot of' həmişə rəqəmlə əvəzlənir"},
+ {g:"Rəqəm qəlibləri",en:"129.95 CAD • 900 CAD monthly • 10,000 CAD • a 15% discount • -20°C • a 30-minute wait",az:"Pul və ölçü"},
+ {g:"Rəqəm qəlibləri",en:"a couple dozen teenagers • over 40 residents • three times as many",az:"Miqdar"},
+ {g:"Hazır ssenarilər",en:"Şikayət: last Sunday 3:15 p.m. + əvvəlcə özüm həll etməyə çalışdım (eskalasiya) + yeni körpə/erkən iş",az:"Complaint ssenarisi"},
+ {g:"Hazır ssenarilər",en:"Professor Wilson-dan reference • TD Midland Branch-dan kredit • lövhələr + axşam patrulu",az:"Request / Suggestion ssenariləri"},
+ {g:"Hazır ssenarilər",en:"Ali's bus story: last spring, my son Ali witnessed a minor collision while riding a city bus; he was so shaken that he refused to ride the bus for a week.",az:"Sabit mikro-hekayə — təhlükəsizlik/nəqliyyat/məktəb Example-ı"}
+];
+/* ==================== APP ==================== */
+const FRAMEWORK=[
+/* ================= TASK 1 — yazı axını ================= */
+ {task:"T1",n:"1",t:"Hazırlıq — oxu, təsnif et, outline çıxar (5 dəq)",b:`<p><b>Brainstorm 2 dəq + Outline 3 dəq.</b> Taskı oxuyan kimi hər bullet-in yanına tip nömrəsini yaz (aşağıdakı Tip 1–7 bölmələrinə bax) — fikir tapmaq axtarışdan tanımaya çevrilir.</p>
+<p><b>Struktur qanunu:</b> bullet sayı = body paraqraf sayı, eyni ardıcıllıqla. Outline-da hər paraqrafa detal bankından 2 konkret detal yaz.</p>
+<p><b>Əmək bölgüsü qərarını İNDİ ver:</b> hansı məlumat girişə, hansı body-yə? Bullet 1 hadisə səhnəsini ayrıca istəyirsə → səhnə Body 1-in mülkiyyətidir → giriş sakin/müştəri çərçivəsi ilə qurulur (<i>My family and I have been living near Bayshore Park since 2023</i>). Girişdə deyilən body-də TƏKRARLANMIR — təkrar söz büdcəsinin qatilidir.</p>
+<p><b>Detal bankı qaydaları:</b> real şəxsi məlumat yazma — hər şey uydurma • çətin yazılışlı adlardan qaç (Saskatchewan yox — Kingston) • eyni dünyanı hər taskda təkrar işlət — spelling avtomatlaşır • detallar məntiqlə uzlaşsın (software engineer "I cannot afford 50 CAD" deməz) • hər yazıda 3–4 spesifik detal KİFAYƏTDİR, hamısını doldurma.</p>`},
+ {task:"T1",n:"2",t:"Salutation — konkret ünvanlama",b:`<p>Formal: <i>Dear Mr. Smith / Dear Garden Centre Manager / Dear HR Manager</i> • Informal: <i>Dear John / Dear Dad.</i></p>
+<p>Ad bilinmirsə <b>vəzifə ilə ünvanla</b> — ad uydurmağa vaxt itirmə. Heç nə yoxdursa, <i>To whom it may concern</i> tam qəbulediləndir (rəsmi korpusda 4× 10-12 alıb).</p>
+<p>Asan yazılan hazır adlar: Mr. MacDonald, Ms. Thompson, Mrs. Wilson, Dr. Lee, Professor Wilson, Officer Brown.</p>`},
+ {task:"T1",n:"3",t:"Giriş — 2 cümlə, artıq HEÇ NƏ (25–40 söz)",b:`<p><b>Cümlə 1 — situasiya (5W):</b> WHO+WHAT+WHERE+WHEN, bir konkret detalla:<br><i>Last Sunday, my wife and I visited the Texas Ranger Steakhouse at 45 Yonge St. West.</i></p>
+<p><b>Cümlə 2 — ikiqat purpose (WHY):</b></p>
+<p class="fx"><b>I am writing to</b> [fel 1]… <b>and to</b> [fel 2]…</p>
+<p>Fel cütləri: <b>report + request</b> (hesabat/şikayət) • <b>inform + inquire</b> • <b>express + offer</b> (narazılıq + həll) • <b>share + recommend</b>. Informal: <i>I'm just writing to let you know that…</i></p>
+<p><b>Janr açılışları</b> (5W prinsipini pozmadan): hesabat → <i>The following is an account of the vehicle accident I witnessed on… at approximately…</i> • təşəkkür → <i>Thank you for the wonderful event last weekend.</i> • xatırlatma → <i>I hope that you remember me from last year; I took your course in…</i></p>
+<p><b>Xəta tələsi:</b> hələ mövcud olmayan şey "your" ola bilməz — <i>to request A prompt inspection</i> (your yox).</p>`},
+ {task:"T1",n:"4",t:"Body — hər paraqrafın ümumi qanunu (~50 söz)",b:`<p><b>Formul: keçid + topic sentence + 1–2 detallı izah.</b> Bir cümlə = bir fikir.</p>
+<p><b>Keçid müxtəlifliyi:</b> hər üç paraqrafı eyni enumerasiya ilə açma — ən azı bir Firstly-ni təbii keçidlə əvəz et: <i>However / Therefore / Unfortunately / To my surprise / Upon arriving…</i> Yeni tapıntı: <i>X, however, + kontrast.</i></p>
+<p><b>‼ 20 SÖZ QAYDASI:</b> cümlə 20 sözü keçdi → dayan, böl. Uzun cümlədə fel idarəsi itir (<i>dressed black WAS dumping • which BEARING • team CONTAIN</i> — hamısı eyni mexanizm). Səhnə + sübut = İKİ cümlə. Düzəldə bilmədiyin cümləni KƏS.</p>
+<p><b>Detal səviyyəsi:</b> hər yazıda 3–4 spesifik detal (rəqəm/tarix/ad/brend) + 3–4 səhnəli (S3) cümlə: <i>waited 30 minutes in -20°C plus windchill • a yellow truck with the Olivia Cosmetics logo.</i> "very + sifət" qadağası: very tired → exhausted.</p>
+<p><b>Masihin 5 keçid kateqoriyası:</b> inkişaf — <i>furthermore, moreover, to elaborate, that is</i> • əlavə — <i>in addition, also, additionally, secondly</i> • nümunə — <i>for example, for instance, to illustrate</i> • nəticə — <i>therefore, thus, so, as a result</i> • kontrast — <i>although, but, while, though, yet, unlike.</i></p>
+<p><b>İki test — hər cümlənin süzgəci:</b> <b>Dəqiqlik (ölçü):</b> cümlədə ölçülə bilən şey varmı — rəqəm, vaxt, ad? "The park is near" keçmir; "just a five-minute walk from our office" keçir. <b>Kamera:</b> cümləni çəkmək olarmı? "It affected her greatly" çəkilmir; "Sarah was sleeping during her lunch breaks" çəkilir.</p>
+<p><b>Cümlə pilləkəni:</b> S1 <i>Commuting takes a lot of time</i> → S2 <i>It takes me 45 minutes each way</i> (rəqəm) → S3 <i>Last Monday, it took nearly two hours just to get to Yonge St. because of the hail storm</i> (vaxt+yer+səbəb+hadisə). Nümunələr S3-də, dəstək cümlələri ≥ S2.</p>
+<p><b>Mini-hadisə qəlibi:</b> [Vaxt] + [Yer] + [Konkret hərəkət] + [FİZİKİ nəticə] — <i>Last Tuesday, we had to cut our lunch short and return to the office hungry.</i></p>
+<p><b>Fel təkmilləşdirməsi:</b> ümumi fel + zərf yerinə BİR dəqiq fel: go → rush/stroll • come down → swoop down • stop → cut short.</p>
+<p><b>Artikl tələsi:</b> Bayshore Park / Swan Lake artiklsiz; west gate kiçik hərflə.</p>`},
+ {task:"T1",n:"4a",t:"Tip 1 — Describe / Inform (5W səhnəsi)",b:`<p><b>Generator:</b> When + Where + Who + What + necə. Boşluqları detal bankından doldur: <i>last Sunday at 3:15 p.m. + near the Main Street intersection + a couple dozen teenagers + loud music and firecrackers.</i></p>
+<p><b>Şahidlik qəlibi:</b> <i>I witnessed [sb] [doING sth]</i> — <i>I witnessed three men dressed in black dumping a black liquid into Swan Lake.</i> ("witnessed sb WAS doing" YANLIŞDIR.)</p>
+<p><b>Hesabat taskında:</b> fakt cümləsi → xronologiya (Car A / Car B etiketləri) → nəticələr → hökm: <i>I believe Car B was at fault for failING to stop at a red light.</i></p>
+<p><b>Hissi sübut əlavə et:</b> <i>it emitted a strong, pungent chemical odor</i> — qoxu/səs/görüntü cümləsi "details" tələbinin sübutudur.</p>`},
+ {task:"T1",n:"4b",t:"Tip 2 — Explain why (səbəb nərdivanı)",b:`<p><b>Generator:</b> pul → vaxt → ailə → iş/təhsil → sağlamlıq → məcburiyyət. İlk dolan 1–2 pillə səbəbindir.</p>
+<p>Səbəbi konkret rəqəmlə ayaqlandır: <i>It takes me 45 minutes to commute each way. / 900 CAD monthly is beyond my current budget.</i></p>
+<p>Qəribə iddianı as/because ilə əsaslandır: <i>…needs more sleep than other people, as she is woken up several times during the night.</i></p>`},
+ {task:"T1",n:"4c",t:"Tip 3 — How it affects you (təsir zənciri)",b:`<p><b>Generator — kiçikdən böyüyə 3 halqa:</b> fiziki/ani təsir → gündəlik həyata → iş/məktəb/ailəyə: <i>səs-küy → uşaqlar yata bilmir → məktəbdə yuxulu qalırlar + iş performansım düşür.</i></p>
+<p><b>Açar qəlib:</b> <i>He was <b>so</b> shaken <b>that</b> he refused to ride the bus for a week.</i> — so + sifət + that + ÖLÇÜLƏ BİLƏN davranış. Abstrakt nəticə ("it was inconvenient") yox, fiziki nəticə: <i>we had to cut our lunch short and return to the office hungry.</i></p>
+<p>Gücləndirici amillər (detal bankından): yeni körpə evdə • səhər 6-da durursan (BrightSoft, 9–6) • Ali-nin dərsləri.</p>`},
+ {task:"T1",n:"4d",t:"Tip 4 — Suggest a solution (ikipilləli təklif)",b:`<p><b>Generator:</b> bir dərhal edilə bilən kiçik addım + bir preventiv tədbir. MÜTƏNASİB olsun — qeyri-real geniş təkliflərdən çəkin; yumşaq hedcinq işlət: <i>maybe 9 or 10 p.m. • some form of curfew.</i></p>
+<p><b>İdeal: iki tədbir bir sistemdir:</b> <i>warning signs + a dedicated hotline number ON these signs would allow witnesses to report incidents immediately.</i></p>
+<p><b>Fel tələsi:</b> <i>I would suggest placING… / May I suggest that you place…</i> ("suggest sb to do" YOXDUR). Janrın qızıl feli: <b>deter</b> — <i>to deter illegal dumping.</i> Təklifin faydasını fiziki göstər: <i>…which would at least help us keep our work clothes clean.</i></p>`},
+ {task:"T1",n:"4e",t:"Tip 5 — Request info / action (3 sual qaydası)",b:`<p><b>Generator:</b> nə dəqiq istəyirəm (+vaxt çərçivəsi) + hansı şərtlərlə (çeviklik!) + əlavə nə bilmək istəyirəm.</p>
+<p><b>Nəzakət cütlüyü:</b> <i>I would appreciate it if you COULD…</i> (would…would olmaz!) / <i>Could you please… / Would it be possible to…</i> — "I need" birbaşa tələb kimi səslənir.</p>
+<p><b>İki-variantlı xahiş (10-12 gedişi):</b> <i>I request that you either honour the advertised sale price OR provide me with a gift voucher.</i></p>
+<p><b>Çeviklik cümləsi:</b> <i>I am happy to come at off-peak hours. / If necessary, I could assist in locating the exact spot.</i> <b>Ehtiyat variant:</b> <i>If this is not possible, please direct me to…</i></p>
+<p><b>Eskalasiya (şikayətdə mütləq):</b> <i>I have politely asked them on several occasions, but to no avail, which is why I feel I have no choice but to contact you. / This is not the first time that I have…</i></p>`},
+ {task:"T1",n:"4f",t:"Tip 6 — What you liked (2 aspekt + 1 insan)",b:`<p><b>Generator:</b> iki konkret aspekt (yemək, təşkilatçılıq, atmosfer) + birini bir insana bağla: <i>the greeter who welcomed every family personally.</i></p>
+<p>Təşəkkür dili: <i>exceeded my expectations • went above and beyond • I cannot thank you enough for… • I am truly grateful for…</i></p>`},
+ {task:"T1",n:"4g",t:"Tip 7 — Apologize / Decline (üzr + səbəb + kompensasiya)",b:`<p><b>Generator:</b> təəssüf ifadəsi → qısa səbəb (bəhanəsiz) → əvəzində təklif.</p>
+<p><i>I sincerely apologize for… / Please accept my apologies for… • due to unforeseen circumstances / a prior commitment • to make it up to you, I would love to take you both to dinner when you return from your honeymoon.</i></p>`},
+ {task:"T1",n:"5",t:"Bağlanış + imza — formul əzbərdir (≤18 söz)",b:`<p class="fx"><b>I look forward to your cooperation in the matter.</b><br><b>Regards,</b> Nijat G.</p>
+<p>Alternativlər: <i>I look forward to hearing back from you. / I look forward to your prompt attention to this matter. / Please let me know when and where I can meet you.</i></p>
+<p>İmza: Formal → <b>Regards, + Nijat G.</b> • Informal → <b>Best, + Nijat.</b> Yaradıcılıq yeri DEYİL — formul olduğu kimi yazılır.</p>
+<p><b>‼ Xəta tələsi:</b> <span style="text-decoration:line-through;color:#a2543f">looking forward your reply</span> → <b>look forward TO your reply.</b></p>`},
+ {task:"T1",n:"6",t:"Proofread — 3–4 dəq, bu sırayla",b:`<ol>
+<li><b>‼ prevent xətası varmı?</b> prevent + obyekt VƏ YA prevent sb from doING ("prevent from + isim" YOXDUR) — 2× təkrarlanıb, İLK bax</li>
+<li>20+ sözlük cümlə qalıb? → böl</li>
+<li>Personaj/tarix əvvəldən sona sabitdirmi? (Ali ≠ Jonah; Friday ≠ Sunday)</li>
+<li>Hər felin obyekti + sözönü: look forward TO • resulted IN • dressed IN black • go TO</li>
+<li>Because ilə başlayan ayrıca cümlə yox</li>
+<li>İsim+təyin qəlibləri: team OF / bearing / containing</li>
+<li>Artikl: Bayshore Park / Swan Lake artiklsiz</li>
+<li>a.m./p.m. nöqtələri • "I" böyük hərflə • truck≠track, stationery≠stationary</li>
+<li>Qrammatik strukturlara TOXUNMA — proofread sadələşdirmə yeri deyil</li></ol>
+<p><b>Yekun çek-list:</b> bullet=body sayı? • giriş 2 cümlə, artıq heç nə? • hər body keçid+topic+izah? • güzəşt cümləsi var (<i>I understand mistakes can happen, but…</i>)? • şikayətdə eskalasiya? • xahiş iki-variantlı/çevik? • səhnə detalı? • although / ;therefore, / In particular üçlüyü? • bir qısa ritm cümləsi (<i>Sometimes even later than that!</i>)? • 150–200 söz?</p>`},
+ {task:"T1",n:"7",t:"Etalon — dumping məktubu (172 söz, 10-zona)",b:`<p>Bütün mərhələlərin bir yerdə işlənmiş halı — hər elementi yuxarıdakı mərhələlərlə tutuşdur:</p>
+<p class="fx">Dear GreenWorld Agency Manager,<br><br>
+My family and I have been living in the BridgeStone Apartments near Bayshore Park since 2023 and visit the park regularly. I am writing to report an illegal dumping incident and to request a prompt inspection of the area.<br><br>
+Firstly, last Friday at 7 p.m., I witnessed three men dressed in black dumping a black liquid into Swan Lake, near the west gate of the park. The liquid came from a yellow truck with the Olivia Cosmetics logo, and it emitted a strong, pungent chemical odor.<br><br>
+Therefore, I would appreciate it if you could conduct an urgent safety inspection of the area with a team of environmental experts within this week. The contamination may spread further if action is delayed. If necessary, I could assist in locating the exact spot.<br><br>
+Furthermore, I would suggest placing warning signs throughout the park to deter illegal dumping. Moreover, a dedicated hotline number on these signs would allow witnesses to report incidents immediately.<br><br>
+I look forward to your cooperation in this matter.<br><br>
+Regards,<br>Nijat G.</p>
+<p><b>Niyə işləyir:</b> sakin çərçivəli giriş (səhnə Body 1-ə saxlanıb) • 3 bullet = 3 body, hər biri fərqli keçidlə (Firstly / Therefore / Furthermore) • şahidlik qəlibi + hissi sübut (qoxu) • parafraz: "immediate" → urgent, "check" → inspection • körpü-ritm cümləsi (<i>The contamination may spread further…</i>) • çeviklik cümləsi • ikipilləli bağlı təklif (signs + hotline ON signs) • formul bağlanış.</p>`},
+/* ================= TASK 2 — yazı axını ================= */
+ {task:"T2",n:"1",t:"Brainstorm — 6 linza (2 dəq)",b:`<p>Sualı oxuyan kimi 6 linzanı seçimə tut — hər birinə 5–10 saniyə "bu bucaqdan arqument varmı?":</p>
+<p class="fx"><b>Pul</b> (qənaət/xərc) • <b>Vaxt / rahatlıq</b> • <b>Sağlamlıq / təhlükəsizlik</b> • <b>Ətraf mühit</b> • <b>İnsan münasibətləri / cəmiyyət</b> • <b>Karyera / təhsil</b></p>
+<p>Ən güclü 2 linza = 2 body paraqrafın. <b>Taktiki qayda:</b> real fikrini yox, <b>müdafiəsi asan tərəfi</b> seç — hansı opsiyada 2 linza daha tez dolursa, o tərəfdə yaz.</p>
+<p><b>Outline (3 dəq):</b> hər səbəbə 1 nümunə də seç (bax: Body 1 bölməsindəki sübut tipləri) — iki body-də iki FƏRQLİ tip olmalıdır. Sonra yaz: 19 dəq.</p>`},
+ {task:"T2",n:"2",t:"Giriş — 1 cümlə: mövqe + 2 səbəb (15–30 söz)",b:`<p class="fx"><b>In my opinion,</b> [seçim] <b>because of</b> [səbəb 1] <b>and</b> [səbəb 2].</p>
+<p><b>Gücləndirici zərf əlavə et</b> (korpusda demək olar universal): <i>I strongly support this policy change. • I am firmly in favour of… • X should most definitely be allowed. • I would like to place on record that… • If given the choice, I would prefer…</i></p>
+<p>Uzun giriş paraqrafı YAZMA — bu, esse deyil: greeting, sign-off lazım deyil. Ton nəzakətli, slenqsiz (sorğunu rəsmi şəxs oxuyur).</p>
+<p><b>Parafraz elə buradan başlayır:</b> sualdakı sözləri köçürmə — <i>change the menu → alter the menu • print version → the physical edition.</i></p>`},
+ {task:"T2",n:"3",t:"Body 1 — Firstly (45–65 söz)",b:`<p><b>Formul:</b> <i>Firstly,</i> [səbəb 1-i YENİ sözlərlə] + 2–3 inkişaf cümləsi + <b>NÜMUNƏ ilə bitir (Masihin şərti — məcburi!)</b></p>
+<p><b>Topic sentence ƏVVƏL, detal SONRA</b> — paraqrafı rəqəmlə/detalla açma.</p>
+<p><b>PREP skeleti:</b> Point (fikir) → Reason (səbəb) → Example (nümunə) → <b>link back</b> — nümunədən sonra bir yarımcümlə ilə fikrə qayıt: <i>…which is exactly why the fixed schedule matters.</i></p>
+<p><b>Nümunəni haradan tapım? Nərdivan:</b> mənim başıma gəlib? → ailəmdə (Ali, Leyla)? → BrightSoft-da? → məktəb illərində? → Bayshore-da?</p>
+<p><b>Example skeleti (hazır doldurma):</b></p>
+<p class="fx"><i>For instance, [vaxt] my son Ali [hadisə] while [kontekst]. He was <b>so</b> [hal] <b>that</b> he [ölçülə bilən davranış].</i></p>
+<p>Hazır hekayə: <i>last spring, my son Ali witnessed a minor collision while riding a city bus; he was so shaken that he refused to ride the bus for a week.</i></p>
+<p><b>4 sübut tipi</b> (bu body üçün birini seç): <b>1) Adlı</b> — <i>Microsoft recently tested a four-day week and recorded a 40% boost</i> (şirkət+rəqəm; uydurma olsa da inandırıcı) • <b>2) Şəxsi hekayə</b> — skelet yuxarıda • <b>3) İcma</b> — <i>Within our community, many [qrup] + [fakt], so + [nəticə]</i> • <b>4) Hipotetik zəncir</b> — <i>If you [decision], you are instantly [consequence].</i></p>
+<p><b>‼ 20 söz qaydası burada da:</b> cümlə uzandı → böl. <i>…that prevent them… because they have… which help identify…</i> (25 söz) = fel idarəsi itir.</p>`},
+ {task:"T2",n:"4",t:"Body 2 — Secondly + GÜZƏŞT (45–65 söz)",b:`<p><b>Formul:</b> <i>Secondly,</i> [səbəb 2 yeni sözlərlə] + inkişaf + <b>NÜMUNƏ</b> — amma Body 1-dən FƏRQLİ sübut tipi ilə.</p>
+<p><b>Güzəşt — 10-12-nin MƏCBURİ elementi.</b> Qarşı tərəfin ən güclü arqumentini etiraf et, sonra çevir. Yeri: bu paraqrafın açılışı (və ya girişin 2-ci cümləsi):</p>
+<p class="fx"><i>While I do acknowledge that…, I strongly endorse… • While I recognise that…, I feel that… • Though X sounds convenient due to…, it is not the better option.</i></p>
+<p><b>Müqayisə cümləsi</b> (ən azı bir): <i>Unlike print, the online version reaches readers instantly. • A school bus, however, follows one fixed route.</i> İki rəqəmli müqayisə dəqiqlik testini avtomatik keçir: <i>…stops just two minutes from our building, while the nearest stop is a fifteen-minute walk away.</i></p>`},
+ {task:"T2",n:"5",t:"Nəticə — girişi YENİ sözlərlə (15–35 söz)",b:`<p class="fx"><b>In conclusion / Ultimately,</b> [giriş yenidən ifadə — mexaniki təkrar YOX].</p>
+<p><b>Hazır parafraz cütləri:</b> safer → <i>protect(s) [kimlərin] well-being</i> • convenient → <i>make(s) daily life simpler for [kim]</i> • eliminates commute time → <i>decreases the number of hours on the road.</i></p>
+<p><b>Zərif demokratik bağlanış</b> (mövqe güclü, ton yumşaq): <i>However, I will respect whatever decision is eventually chosen. / Thank you for giving me the opportunity to voice my opinion on this matter.</i></p>`},
+ {task:"T2",n:"6",t:"Proofread — 3–4 dəq, bu sırayla",b:`<ol>
+<li><b>‼ prevent xətası varmı?</b> (prevent sb from doING / protect from) — 2× təkrarlanıb</li>
+<li>20+ sözlük cümlə? → böl</li>
+<li>Personaj sabitdir? (Ali ≠ Jonah)</li>
+<li>Sözönülər: look forward TO • resulted IN • according to recent research (researchES yox)</li>
+<li>allow sb to do (offer sb to take YOX) • Because fraqmenti yox</li>
+<li>Sualdakı sözlər parafraz edilib?</li>
+<li>Qrammatikaya toxunma — sadələşdirmə yeri deyil</li></ol>
+<p><b>Yekun çek-list:</b> 1-ci cümlə mövqe + 2 səbəb + strongly? • hər body KONKRET nümunə ilə bitir? • iki FƏRQLİ sübut tipi? • güzəşt VAR (məcburi)? • müqayisə cümləsi? • nəticə yeni sözlərlə? • zərif bağlanış? • 3–4 səhnəli (S3) cümlə — Example S3-də, qalanlar ən azı rəqəm-lövbərli? • 150–200 söz?</p>`}
+];
+
+/* ========== MƏRHƏLƏ XƏRİTƏSİ: hər element öz mərhələsinə bağlanır ========== */
+const GMAP={
+ "Purpose (giriş)":["T1:3"],
+ "Açılışlar (janr üzrə)":["T1:3"],
+ "Güzəşt (concession)":["T1:4","T2:4"],
+ "Eskalasiya və xahiş":["T1:4e"],
+ "Task 2: mövqe":["T2:2"],
+ "Task 2: sübut":["T2:3"],
+ "Task 2: bağlanış":["T2:5"],
+ "Bağlanış formulları":["T1:5"],
+ "Example skeleti":["T2:3"],
+ "Dəqiq fellər":["T1:4"],
+ "Fel+isim kollokasiyaları":["T1:4"],
+ "Şikayət dəsti":["T1:4e"],
+ "Təklif dəsti":["T1:4d"],
+ "Üzr / imtina":["T1:4g"],
+ "Təşəkkür":["T1:4f"],
+ "Yumşaq idiomlar (YALNIZ informal T1 + T2)":["T1:4","T2:3"],
+ "Personaj":["T1:1"],
+ "Adlar":["T1:2"],
+ "Yerlər":["T1:1"],
+ "Rəqəm qəlibləri":["T1:4"],
+ "Hazır ssenarilər":["T1:1"]
+};
+PHRASES.forEach(x=>{x.st=(GMAP[x.g]||[]).slice();});
+VOCAB.forEach(x=>{x.st=x.g.startsWith("Klaster")?["T1:1"]:(GMAP[x.g]||[]).slice();});
+DETAILS.forEach(x=>{x.st=(GMAP[x.g]||[]).slice();});
+/* istisnalar — açar söz → mərhələlər */
+const PEX=[
+ ["so shaken",["T1:4c","T2:3"]],
+ ["fifteen-minute walk",["T2:4"]],
+ ["however, follows",["T1:4","T2:4"]],
+ ["hotline",["T1:4d"]],
+ ["I witnessed three men",["T1:4a"]],
+ ["For instance, [vaxt] my son Ali",["T2:3"]]
+];
+PEX.forEach(([k,st])=>{const x=PHRASES.find(p=>p.en.includes(k));if(x)x.st=st;});
+const dAli=DETAILS.find(d=>d.en.includes("Ali's bus story"));if(dAli)dAli.st=["T1:1","T2:3"];
+/* xətalar — açar söz → mərhələlər */
+const EMAP=[
+ ["prevent them",["T1:4","T2:3"]],
+ ["looking forward",["T1:5"]],
+ ["resulted the",["T1:4","T2:3"]],
+ ["haven't rush",["T2:3"]],
+ ["researches",["T2:3"]],
+ ["offer employees",["T2:3"]],
+ ["takes 45 minutes me",["T1:4b","T2:3"]],
+ ["affected great",["T1:4c"]],
+ ["silence and clarity",["T1:4"]],
+ ["in recent times",["T1:4"]],
+ ["stop our lunch",["T1:4c"]],
+ ["printer stopped",["T1:4a"]],
+ ["stationary",["T1:4"]],
+ ["yellow track",["T1:4a"]],
+ ["meet greater",["T1:4f"]],
+ ["daily lifestyle",["T2:3"]],
+ ["first time to live",["T1:3"]],
+ ["join meets",["T1:4"]],
+ ["three times less",["T2:4"]],
+ ["help these two things",["T2:3"]],
+ ["slot's owner",["T1:4"]],
+ ["Because it improves",["T1:4","T2:3"]],
+ ["dressed black",["T1:4a"]],
+ ["which bearing",["T1:4a"]],
+ ["team contain",["T1:4e"]],
+ ["if you would conduct",["T1:4e"]],
+ ["suggest you place",["T1:4d"]],
+ ["the Bayshore Park",["T1:4"]],
+ ["refused to go to school",["T2:3"]],
+ ["Secondly, [detalla",["T2:3"]],
+ ["Modern Literature Museum",["T2:3"]],
+ ["Jonah",["T1:6","T2:6"]]
+];
+ERRORS.forEach(e=>{const hit=EMAP.find(([k])=>e.w.includes(k));e.st=hit?hit[1].slice():[];});
+const TABS=[["all","🔎 Hamısı"],["t1","📄 Task 1"],["t2","📄 Task 2"],["drill","🃏 Drill"]];
+let tab="all", q="", fPrio=false, fTask="";
+const $=id=>document.getElementById(id);
+const esc=s=>(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+function hl(s){ if(!q) return esc(s); const r=new RegExp("("+q.replace(/[.*+?^${}()|[\]\\]/g,"\\$&")+")","gi"); return esc(s).replace(r,"<mark>$1</mark>"); }
+function match(...fields){ if(!q) return true; const s=q.toLowerCase(); return fields.some(f=>(f||"").toLowerCase().includes(s)); }
+
+function renderTabs(){ $("tabs").innerHTML=TABS.map(([id,l])=>`<button class="tab ${tab===id?'on':''}" onclick="setTab('${id}')">${l}</button>`).join(""); }
+function setTab(t){ tab=t; if(t!=="drill") drillActive=false; renderTabs(); render(); }
+
+function render(){
+  const F=$("filters"), C=$("content");
+  if(tab==="drill"){ F.innerHTML=""; $("count").textContent=""; renderDrill(); return; }
+  if(tab==="t1"||tab==="t2"){
+    F.innerHTML="";
+    const T=tab==="t1"?"T1":"T2";
+    const stageExtra=(key)=>{
+      const errs=ERRORS.filter(e=>(e.st||[]).includes(key));
+      const phr=PHRASES.filter(x=>(x.st||[]).includes(key));
+      const voc=VOCAB.filter(x=>(x.st||[]).includes(key));
+      const det=DETAILS.filter(x=>(x.st||[]).includes(key));
+      let ex="";
+      if(errs.length) ex+=`<div class="sub s-e"><div class="subh">⚠ Sənin xətaların — bu mərhələdə (${errs.length})</div>`+errs.map(e=>`<div class="mini"><span class="wrong">${esc(e.w)}</span> → <span class="right">${esc(e.r)}</span>${e.prio?' <span class="tag t-prio">‼ 2×</span>':''}<div class="rule">${esc(e.rule)}</div></div>`).join("")+`</div>`;
+      if(phr.length) ex+=`<div class="sub s-p"><div class="subh">Qəliblər (${phr.length})</div>`+phr.map(x=>`<div class="mini"><span class="en2">${esc(x.en)}</span><div class="rule">${esc(x.az)}</div></div>`).join("")+`</div>`;
+      if(voc.length) ex+=`<div class="sub s-v"><div class="subh">Lüğət (${voc.length})</div>`+voc.map(x=>`<div class="mini"><span class="en2">${esc(x.en)}</span> <span class="rule" style="display:inline">— ${esc(x.az)}</span></div>`).join("")+`</div>`;
+      if(det.length) ex+=`<div class="sub s-d"><div class="subh">Detal bankından (${det.length})</div>`+det.map(x=>`<div class="mini"><span class="en2">${esc(x.en)}</span><div class="rule">${esc(x.az)}</div></div>`).join("")+`</div>`;
+      return ex;
+    };
+    const stMatch=(s,key)=>{
+      if(!q) return true;
+      if(match(s.t,s.b.replace(/<[^>]+>/g," "))) return true;
+      const pool=[...ERRORS.filter(e=>(e.st||[]).includes(key)).map(e=>e.w+" "+e.r+" "+e.rule),
+                  ...PHRASES.filter(x=>(x.st||[]).includes(key)).map(x=>x.en+" "+x.az),
+                  ...VOCAB.filter(x=>(x.st||[]).includes(key)).map(x=>x.en+" "+x.az),
+                  ...DETAILS.filter(x=>(x.st||[]).includes(key)).map(x=>x.en+" "+x.az)];
+      const s2=q.toLowerCase(); return pool.some(t=>t.toLowerCase().includes(s2));
+    };
+    const secs=FRAMEWORK.filter(s=>s.task===T&&stMatch(s,T+":"+s.n));
+    let html=`<div class="grp">${T==="T1"?"Task 1 — yazı axını, mərhələ-mərhələ":"Task 2 — yazı axını, mərhələ-mərhələ"} <span style="font-size:12px;color:var(--muted);font-weight:normal">(başlığa toxun — hər mərhələdə qayda + qəliblər + sənin xətaların)</span></div>`;
+    html+=secs.map(s=>{
+      const key=T+":"+s.n;
+      return `<details class="fw" ${q?"open":""}><summary><span class="stg">${s.n}</span>${hl(s.t)}</summary><div class="fwb">${q?s.b.replace(new RegExp("("+q.replace(/[.*+?^${}()|[\]\\]/g,"\\$&")+")","gi"),"<mark>$1</mark>"):s.b}${stageExtra(key)}</div></details>`;
+    }).join("");
+    $("count").textContent=`${secs.length} mərhələ`;
+    C.innerHTML=html||`<div class="empty">Bu axtarışa uyğun mərhələ yoxdur.</div>`; return;
+  }
+  let chips="";
+  if(tab==="err"||tab==="all") chips+=`<button class="chip prio ${fPrio?'on':''}" onclick="fPrio=!fPrio;render()">‼ yalnız prioritet</button>`;
+  if(tab==="phr"||tab==="all"){ chips+=["T1","T2"].map(t=>`<button class="chip ${fTask===t?'on':''}" onclick="fTask=fTask==='${t}'?'':'${t}';render()">${t==="T1"?"Task 1":"Task 2"}</button>`).join(""); }
+  F.innerHTML=chips;
+  let html="", n=0;
+  const wantE=tab==="all"||tab==="err", wantP=tab==="all"||tab==="phr", wantV=tab==="all"||tab==="voc", wantD=tab==="all"||tab==="det";
+  if(tab==="all"&&q){
+    const rows=FRAMEWORK.filter(s=>match(s.t,s.b.replace(/<[^>]+>/g," ")));
+    if(rows.length){ html+=`<div class="grp">Çərçivə bölmələri</div>`;
+      html+=rows.map(s=>`<details class="fw" open><summary>${hl(s.t)} <span class="tag t-task">${s.task}</span></summary><div class="fwb">${s.b.replace(new RegExp("("+q.replace(/[.*+?^${}()|[\]\\]/g,"\\$&")+")","gi"),"<mark>$1</mark>")}</div></details>`).join(""); n+=rows.length; }
+  }
+  if(wantE){
+    const rows=ERRORS.filter(e=>(!fPrio||e.prio)&&match(e.w,e.r,e.rule));
+    if(rows.length){ if(tab==="all")html+=`<div class="grp">Xətalar</div>`;
+      html+=rows.map(e=>`<div class="card c-err"><div class="top"><span class="tag t-err">XƏTA</span>${e.prio?'<span class="tag t-prio">‼ PRİORİTET 2×</span>':''}${e.mech?`<span class="tag t-task">${e.mech}</span>`:''}</div><div class="en"><span class="wrong">${hl(e.w)}</span> → <span class="right">${hl(e.r)}</span></div><div class="rule">${hl(e.rule)}</div></div>`).join(""); n+=rows.length; }
+  }
+  if(wantP){
+    const rows=PHRASES.filter(p=>(!fTask||p.task.includes(fTask))&&match(p.en,p.az,p.g));
+    if(rows.length){ if(tab==="all")html+=`<div class="grp">Qəliblər</div>`;
+      let lastG="";
+      html+=rows.map(p=>{ const gh=(tab==="phr"&&p.g!==lastG)?`<div class="grp">${esc(p.g)}</div>`:""; lastG=p.g;
+        return gh+`<div class="card c-phr"><div class="top"><span class="tag t-phr">QƏLİB</span><span class="tag t-task">${p.task==="T1T2"?"T1+T2":p.task}</span>${tab!=="phr"?`<span class="tag t-task">${esc(p.g)}</span>`:''}</div><div class="en">${hl(p.en)}</div><div class="az">${hl(p.az)}</div></div>`;}).join(""); n+=rows.length; }
+  }
+  if(wantV){
+    const rows=VOCAB.filter(v=>match(v.en,v.az,v.g));
+    if(rows.length){ if(tab==="all")html+=`<div class="grp">Lüğət</div>`;
+      let lastG="";
+      html+=rows.map(v=>{ const gh=(tab==="voc"&&v.g!==lastG)?`<div class="grp">${esc(v.g)}</div>`:""; lastG=v.g;
+        return gh+`<div class="card c-voc"><div class="top"><span class="tag t-voc">LÜĞƏT</span>${tab!=="voc"?`<span class="tag t-task">${esc(v.g)}</span>`:''}</div><div class="en">${hl(v.en)}</div><div class="az">${hl(v.az)}</div></div>`;}).join(""); n+=rows.length; }
+  }
+  if(wantD){
+    const rows=DETAILS.filter(d=>match(d.en,d.az,d.g));
+    if(rows.length){ if(tab==="all")html+=`<div class="grp">Detal Bankı</div>`;
+      let lastG="";
+      html+=rows.map(d=>{ const gh=(tab==="det"&&d.g!==lastG)?`<div class="grp">${esc(d.g)}</div>`:""; lastG=d.g;
+        return gh+`<div class="card c-det"><div class="top"><span class="tag t-det">DETAL</span>${tab!=="det"?`<span class="tag t-task">${esc(d.g)}</span>`:''}</div><div class="en">${hl(d.en)}</div><div class="az">${hl(d.az)}</div></div>`;}).join(""); n+=rows.length; }
+  }
+  $("count").textContent=n?`${n} nəticə`:"";
+  C.innerHTML=html||`<div class="empty">Heç nə tapılmadı. Başqa söz yoxla — məsələn: <b>prevent</b>, <b>güzəşt</b>, <b>refund</b>.</div>`;
+}
+
+/* ---------- drill ---------- */
+let drillActive=false, deck=[], di=0, flipped=false, know=0, dont=0, dmode="err";
+function shuffle(a){ for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];} return a; }
+function startDrill(){
+  deck = dmode==="err"
+    ? shuffle(ERRORS.map(e=>({f:e.w,b:e.r,rl:e.rule,prio:e.prio})))
+    : shuffle(PHRASES.filter(p=>p.az).map(p=>({f:p.az,b:p.en,rl:p.g})));
+  // prioritet kartlar əvvələ
+  deck.sort((a,b)=>(b.prio?1:0)-(a.prio?1:0));
+  di=0; flipped=false; know=0; dont=0; drillActive=true; renderDrill();
+}
+function renderDrill(){
+  const C=$("content");
+  if(!drillActive){
+    C.innerHTML=`<div class="drillwrap">
+      <div class="dmode">
+        <button class="chip ${dmode==='err'?'on':''}" onclick="dmode='err';renderDrill()">Xəta kartları (${ERRORS.length})</button>
+        <button class="chip ${dmode==='phr'?'on':''}" onclick="dmode='phr';renderDrill()">Qəlib kartları AZ→EN (${PHRASES.length})</button>
+      </div>
+      <p style="color:var(--muted);font-size:14px;margin-bottom:16px">${dmode==='err'
+        ?'Kartda YANLIŞ forma görünür — düzgününü ürəyində de, kartı çevir, özünü qiymətləndir. Prioritet xətalar əvvəl gəlir.'
+        :'Kartda Azərbaycanca məna görünür — ingiliscə qəlibi xatırla, kartı çevir.'}</p>
+      <button class="btn flip" onclick="startDrill()">Başla</button>
+      <p class="note">Nəticələr yalnız bu sessiyada saxlanılır (səhifə yenilənəndə sıfırlanır).</p>
+    </div>`; return;
+  }
+  if(di>=deck.length){
+    C.innerHTML=`<div class="drillwrap"><div class="dcard" style="cursor:default">
+      <div class="side">NƏTİCƏ</div>
+      <div class="big">✅ ${know} bildim &nbsp;•&nbsp; ❌ ${dont} bilmədim</div>
+      <div class="rl">${dont===0?"Hamısını bildin — bu dəst avtomatlaşıb! 🎉":"Bilmədiklərini sabah yenə drill et — 3 gün ardıcıl bilinən kart avtomatlaşmış sayılır."}</div>
+    </div><div class="dbtns"><button class="btn flip" onclick="startDrill()">Yenidən</button><button class="btn ghost" onclick="drillActive=false;renderDrill()">Rejim seçiminə qayıt</button></div></div>`; return;
+  }
+  const c=deck[di];
+  C.innerHTML=`<div class="drillwrap">
+    <div class="dstats"><span class="k"><b>${know}</b>bildim</span><span><b>${di+1} / ${deck.length}</b>kart</span><span class="d"><b>${dont}</b>bilmədim</span></div>
+    <div class="dcard" onclick="flipped=!flipped;renderDrill()">
+      ${flipped
+        ?`<div class="side">DÜZGÜN${c.prio?' — ‼ PRİORİTET':''}</div><div class="big r">${esc(c.b)}</div><div class="rl">${esc(c.rl)}</div>`
+        :`<div class="side">${dmode==='err'?'YANLIŞ FORMA — düzgünü nədir?':'AZ — ingiliscə qəlib nədir?'}${c.prio?' — ‼':''}</div><div class="big ${dmode==='err'?'w':''}">${esc(c.f)}</div><div class="rl">kartı çevirmək üçün toxun</div>`}
+    </div>
+    <div class="dbtns">${flipped
+      ?`<button class="btn dont" onclick="dont++;di++;flipped=false;renderDrill()">❌ Bilmədim</button><button class="btn know" onclick="know++;di++;flipped=false;renderDrill()">✅ Bildim</button>`
+      :`<button class="btn flip" onclick="flipped=true;renderDrill()">Çevir</button>`}</div>
+  </div>`;
+}
+
+$("search").addEventListener("input",e=>{q=e.target.value.trim(); if(tab==="drill")setTab("all"); else render();});
+renderTabs(); render();
+</script>
+</body>
+</html>
